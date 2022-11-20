@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  ms1-pg:
+    container_name: ${MS1_PREFIX}PG
+    network_mode: host
+    image: postgres:11
+    # restart: always
+    environment:
+      - POSTGRES_USER=${MS1_DB_USERNAME}
+      - POSTGRES_PASSWORD=${MS1_DB_PASSWORD}
+      - POSTGRES_DB=${MS1_DB_DATABASE}
+    volumes:
+      - ./${MS1_FOLDER}/storage/sql-init:/docker-entrypoint-initdb.d/
+    ports:
+      - ${MS1_DB_PORT}:${MS1_DB_PORT}
+    command: -p ${MS1_DB_PORT}
+
+
+  ms2-pg:
+    container_name: ${MS2_PREFIX}PG
+    network_mode: host
+    image: postgres:11
+    # restart: always
+    environment:
+      - POSTGRES_USER=${MS2_DB_USERNAME}
+      - POSTGRES_PASSWORD=${MS2_DB_PASSWORD}
+      - POSTGRES_DB=${MS2_DB_DATABASE}
+    volumes:
+      - ./${MS2_FOLDER}/storage/sql-init:/docker-entrypoint-initdb.d/
+    ports:
+      - ${MS2_DB_PORT}:${MS2_DB_PORT}
+    command: -p ${MS2_DB_PORT}
+
+
+
+
+  ms1-jwt-auth-ns:
+    build:
+      context: ${MS1_FOLDER}
+      dockerfile: Dockerfile
+    image: ${MS1_IMAGE_NAME}:${MS1_VERSION}
+    expose:
+      - ${MS1_PORT}
+    container_name: ${MS1_CONTAINER_NAME}
+    network_mode: host
+    # restart: always
+    # depends_on:
+    #     - ms1-pg
+    volumes:
+      - ./${MS1_FOLDER}/storage:/storage
+
+
+  ms2-simple-todo-ns:
+    build:
+      context: ${MS2_FOLDER}
+      dockerfile: Dockerfile
+    image: ${MS2_IMAGE_NAME}:${MS2_VERSION}
+    expose:
+      - ${MS2_PORT}
+    container_name: ${MS2_CONTAINER_NAME}
+    network_mode: host
+    # restart: always
+    # depends_on:
+    #   - ms2-pg
+    volumes:
+      - ./${MS2_FOLDER}/storage:/storage
+
